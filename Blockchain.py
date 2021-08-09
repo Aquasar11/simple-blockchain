@@ -1,6 +1,10 @@
 import hashlib
 import json
+import sys
 from time import time
+from uuid import uuid4
+
+from flask import Flask, jsonify
 
 
 class Blockchain:
@@ -57,3 +61,34 @@ class Blockchain:
             proof += 1
 
         return proof
+
+
+app = Flask(__name__)
+node_id = str(uuid4())
+blockchain = Blockchain()
+
+
+@app.route('/mine')
+def mine():
+    """mine a block and add it to blockchain"""
+    pass
+
+
+@app.route('/trxs/new', methods=['POST'])
+def new_trx():
+    """add a new transaction"""
+    pass
+
+
+@app.route('/chain')
+def full_chain():
+    """returns the full chain"""
+    res = {
+        'chain': blockchain.chain,
+        'length': len(blockchain.chain)
+    }
+    return jsonify(res), 200
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=1234)
