@@ -1,10 +1,9 @@
 import hashlib
 import json
-import sys
 from time import time
 from uuid import uuid4
 
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 
 class Blockchain:
@@ -71,13 +70,38 @@ blockchain = Blockchain()
 @app.route('/mine')
 def mine():
     """mine a block and add it to blockchain"""
-    pass
+    previous_block = blockchain.last_block
+    previous_proof = previous_block['proof']
+
+    new_proof = blockchain.proof_of_work(previous_proof)
+    blockchain.new_transaction('protocol', 'Ali', 100)
+
+    previous_hash = blockchain.hash(previous_block)
+    new_block = blockchain.new_block(new_proof, previous_hash)
+    res = {
+        'message': "new block created",
+        'index': new_block['index'],
+        'trxs': new_block['transactions'],
+        'proof': new_proof,
+        'hash': blockchain.hash(new_block)
+    }
+
+    return jsonify(res), 200
 
 
 @app.route('/trxs/new', methods=['POST'])
 def new_trx():
-    """add a new transaction"""
-    pass
+    """add a new transaction by getting sender, recipient and amount"""
+    values = request.get_json()
+
+    # Check that the required fields are in the POST'ed data
+    if not all(k in values for k in ['sender', 'recipient', 'amount']):
+        return 'Missing values', 400
+
+    # Create a new Transaction
+    index = blockchain.new_transaction(values['sender'], values['recipient'], values['amount'])
+    response = {'message': f'Transaction will be added to Block {index}'}
+    return jsonify(response), 201
 
 
 @app.route('/chain')
